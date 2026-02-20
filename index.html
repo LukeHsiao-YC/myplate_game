@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>星際 211 吞噬者 | 我的餐盤互動遊戲</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #0f172a; /* Tailwind slate-900 */
+            touch-action: none; /* 防止手機滑動頁面 */
+        }
+        canvas {
+            display: block;
+        }
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* 霓虹文字效果 */
+        .neon-text {
+            color: #fff;
+            text-shadow:
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #0ea5e9,
+                0 0 40px #0ea5e9;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- UI 層 -->
+    <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
+        <!-- 頂部資訊列 -->
+        <div class="flex justify-between items-start">
+            <div class="glass-panel p-3 rounded-xl text-white shadow-lg pointer-events-auto">
+                <div class="text-sm text-slate-400">分數 SCORE</div>
+                <div id="score-display" class="text-3xl font-black text-yellow-400">0</div>
+            </div>
+            
+            <div class="glass-panel p-3 rounded-xl text-white shadow-lg text-center pointer-events-auto">
+                <div class="text-sm text-slate-400">剩餘時間 TIME</div>
+                <div id="time-display" class="text-3xl font-black text-rose-400">60</div>
+            </div>
+
+            <div class="glass-panel p-3 rounded-xl text-white shadow-lg text-right pointer-events-auto">
+                <div class="text-sm text-slate-400">等級 LEVEL</div>
+                <div id="level-display" class="text-3xl font-black text-emerald-400">1</div>
+            </div>
+        </div>
+
+        <!-- 底部提示列 -->
+        <div class="text-center mb-4">
+            <div id="message-display" class="inline-block glass-panel px-6 py-2 rounded-full text-white font-bold text-lg opacity-0 transition-opacity duration-300">
+                歡迎來到星際！
+            </div>
+        </div>
+    </div>
+
+    <!-- 開始/結束畫面覆蓋層 -->
+    <div id="overlay" class="absolute inset-0 bg-slate-900/90 flex items-center justify-center z-20 backdrop-blur-sm">
+        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl">
+            <h1 class="text-4xl font-black mb-2 neon-text tracking-wider">星際 211 吞噬者</h1>
+            <p class="text-emerald-400 font-bold mb-6">我的餐盤能量大挑戰</p>
+            
+            <div class="text-left space-y-4 mb-8 text-sm md:text-base">
+                <p>🛸 <b>任務目標：</b> 幫助波波收集宇宙能量，組成完美的 211 餐盤！</p>
+                <div class="bg-slate-800 p-3 rounded-lg">
+                    <p class="font-bold text-emerald-400 mb-1">🟢 蔬菜 (佔 50%) - 需要 4 份</p>
+                    <p class="text-xs text-slate-300">🥦 🥕 🍅 🥬 🍆 🍄</p>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-lg">
+                    <p class="font-bold text-rose-400 mb-1">🔴 豆魚蛋肉 (佔 25%) - 需要 2 份</p>
+                    <p class="text-xs text-slate-300">🍗 🐟 🥚 🥩 🦐 🦑</p>
+                </div>
+                <div class="bg-slate-800 p-3 rounded-lg">
+                    <p class="font-bold text-amber-400 mb-1">🟡 全穀雜糧 (佔 25%) - 需要 2 份</p>
+                    <p class="text-xs text-slate-300">🍚 🍠 🌽 🍞 🥔 (注意：玉米馬鈴薯是澱粉喔！)</p>
+                </div>
+                <p>✨ <b>隱藏加成：</b> 吃到乳品🥛或堅果🥜可獲得「我的餐盤」無敵衝刺！</p>
+                <p>⚠️ <b>危險警告：</b> 碰到垃圾食物🍔🥤會扣時間！</p>
+                <p class="text-center text-slate-400 text-xs pt-2">操作方式：滑鼠移動 或 觸控滑動</p>
+            </div>
+
+            <button id="start-btn" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xl rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                開始發射！
+            </button>
+        </div>
+    </div>
+
+    <!-- 遊戲畫布 -->
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+/**
+ * 遊戲引擎與邏輯
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const startBtn = document.getElementById('start-btn');
+const scoreDisplay = document.getElementById('score-display');
+const timeDisplay = document.getElementById('time-display');
+const levelDisplay = document.getElementById('level-display');
+const messageDisplay = document.getElementById('message-display');
+
+// 調整畫布大小
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+// --- 遊戲資料庫 (Emoji 食物) ---
+const FOOD_TYPES = {
+    VEG: { id: 'v', color: '#34d399', name: '蔬菜', emojis: ['🥦', '🥕', '🍅', '🥬', '🍆', '🍄', '🧅', '🥒'], max: 4 },
+    PRO: { id: 'p', color: '#fb7185', name: '蛋白質', emojis: ['🍗', '🐟', '🥚', '🥩', '🦐', '🦑', '🦞', '🦀'], max: 2 },
+    CARB: { id: 'c', color: '#fbbf24', name: '全穀雜糧', emojis: ['🍚', '🍠', '🌽', '🍞', '🥔', '🍜', '🥐', '🥟'], max: 2 },
+    BONUS: { id: 'b', color: '#60a5fa', name: '健康加成', emojis: ['🥛', '🥜', '🧀', '🌰'] },
+    JUNK: { id: 'j', color: '#94a3b8', name: '地雷', emojis: ['🍔', '🍟', '🥤', '🍰', '🍩', '🍫', '🍕', '🍦'] }
+};
+
+// --- 遊戲狀態 ---
+let gameState = {
+    isRunning: false,
+    score: 0,
+    time: 60,
+    level: 1,
+    lastTime: 0,
+    timerInterval: null
+};
+
+// --- 實體類別 ---
+
+class Player {
+    constructor() {
+        this.radius = 40;
+        this.x = canvas.width / 2;
+        this.y = canvas.height / 2;
+        this.targetX = this.x;
+        this.targetY = this.y;
+        this.speed = 0.15; // 緩動跟隨滑鼠的速度
+        this.inventory = { v: 0, p: 0, c: 0 };
+        this.invincibleTimer = 0;
+        this.rotation = 0;
+    }
+
+    update(dt) {
+        // 平滑移動到目標位置 (Lerp)
+        this.x += (this.targetX - this.x) * this.speed;
+        this.y += (this.targetY - this.y) * this.speed;
+        
+        // 邊界限制
+        this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
+        this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
+
+        if (this.invincibleTimer > 0) {
+            this.invincibleTimer -= dt;
+        }
+        this.rotation += 0.02;
+    }
+
+    draw(ctx) {
+        // 畫無敵光環
+        if (this.invincibleTimer > 0) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius + 15 + Math.sin(Date.now()*0.01)*5, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(96, 165, 250, 0.3)';
+            ctx.fill();
+            ctx.strokeStyle = '#60a5fa';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        // 畫 211 能量環 (甜甜圈圖)
+        const ringRadius = this.radius + 8;
+        ctx.lineWidth = 12;
+
+        // 背景環
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, ringRadius, 0, Math.PI * 2);
+        ctx.strokeStyle = '#334155';
+        ctx.stroke();
+
+        let currentAngle = -Math.PI / 2; // 從正上方開始
+
+        // 畫蔬菜 (目標 4/8 = 50% = 180度)
+        if (this.inventory.v > 0) {
+            const vAngle = (this.inventory.v / 8) * (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, ringRadius, currentAngle, currentAngle + vAngle);
+            ctx.strokeStyle = FOOD_TYPES.VEG.color;
+            ctx.stroke();
+            currentAngle += vAngle;
+        }
+
+        // 畫蛋白質 (目標 2/8 = 25% = 90度)
+        if (this.inventory.p > 0) {
+            const pAngle = (this.inventory.p / 8) * (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, ringRadius, currentAngle, currentAngle + pAngle);
+            ctx.strokeStyle = FOOD_TYPES.PRO.color;
+            ctx.stroke();
+            currentAngle += pAngle;
+        }
+
+        // 畫全穀 (目標 2/8 = 25% = 90度)
+        if (this.inventory.c > 0) {
+            const cAngle = (this.inventory.c / 8) * (Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, ringRadius, currentAngle, currentAngle + cAngle);
+            ctx.strokeStyle = FOOD_TYPES.CARB.color;
+            ctx.stroke();
+        }
+
+        // 畫外星人本體
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        // 眼睛
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(-12, -10, 8, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(12, -10, 8, 0, Math.PI*2); ctx.fill();
+        
+        ctx.fillStyle = '#000';
+        // 隨著滑鼠方向轉動眼珠的簡易模擬
+        let eyeDx = (this.targetX - this.x) * 0.02;
+        let eyeDy = (this.targetY - this.y) * 0.02;
+        eyeDx = Math.max(-4, Math.min(4, eyeDx));
+        eyeDy = Math.max(-4, Math.min(4, eyeDy));
+        
+        ctx.beginPath(); ctx.arc(-12 + eyeDx, -10 + eyeDy, 4, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(12 + eyeDx, -10 + eyeDy, 4, 0, Math.PI*2); ctx.fill();
+
+        // 嘴巴 (吃東西時張開)
+        ctx.beginPath();
+        ctx.arc(0, 10, 10, 0, Math.PI, false);
+        ctx.fillStyle = '#ef4444';
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+class Food {
+    constructor(typeObj) {
+        this.typeObj = typeObj;
+        this.emoji = typeObj.emojis[Math.floor(Math.random() * typeObj.emojis.length)];
+        this.radius = 20;
+        
+        // 隨機從畫面邊緣生成
+        if (Math.random() > 0.5) {
+            this.x = Math.random() > 0.5 ? -this.radius : canvas.width + this.radius;
+            this.y = Math.random() * canvas.height;
+        } else {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() > 0.5 ? -this.radius : canvas.height + this.radius;
+        }
+
+        // 飛向畫面中央稍微隨機的位置
+        const targetX = canvas.width/2 + (Math.random() - 0.5) * 300;
+        const targetY = canvas.height/2 + (Math.random() - 0.5) * 300;
+        const angle = Math.atan2(targetY - this.y, targetX - this.x);
+        
+        const speed = 1 + Math.random() * 2 + (gameState.level * 0.2); // 隨等級變快
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        
+        this.rotation = Math.random() * Math.PI * 2;
+        this.rotSpeed = (Math.random() - 0.5) * 0.1;
+        this.markedForDeletion = false;
+        
+        // 出生保護時間，避免一出生就被刪除
+        this.lifeTime = 0;
+    }
+
+    update(dt) {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.rotation += this.rotSpeed;
+        this.lifeTime += dt;
+
+        // 如果飛出螢幕太遠則刪除
+        if (this.lifeTime > 2000 && (this.x < -100 || this.x > canvas.width + 100 || this.y < -100 || this.y > canvas.height + 100)) {
+            this.markedForDeletion = true;
+        }
+        
+        // 邊緣反彈 (微弱反彈，讓他多留在場上一會兒)
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -0.9;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -0.9;
+    }
+
+    draw(ctx) {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.rotation);
+        
+        // 外發光
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = this.typeObj.color;
+        
+        ctx.font = '30px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, 0, 0);
+        
+        ctx.restore();
+    }
+}
+
+class Particle {
+    constructor(x, y, color, text) {
+        this.x = x;
+        this.y = y;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4 - 2;
+        this.life = 1.0;
+        this.color = color;
+        this.text = text;
+    }
+    update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= 0.02;
+    }
+    draw(ctx) {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.life);
+        if (this.text) {
+            ctx.font = 'bold 20px "Noto Sans TC"';
+            ctx.fillStyle = this.color;
+            ctx.textAlign = 'center';
+            ctx.fillText(this.text, this.x, this.y);
+        } else {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, 5, 0, Math.PI*2);
+            ctx.fillStyle = this.color;
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+}
+
+// --- 遊戲變數 ---
+let player;
+let foods = [];
+let particles = [];
+let foodSpawnTimer = 0;
+
+// --- 輸入處理 ---
+function updateTarget(e) {
+    if (!gameState.isRunning) return;
+    e.preventDefault();
+    if (e.touches && e.touches.length > 0) {
+        player.targetX = e.touches[0].clientX;
+        player.targetY = e.touches[0].clientY;
+    } else {
+        player.targetX = e.clientX;
+        player.targetY = e.clientY;
+    }
+}
+window.addEventListener('mousemove', updateTarget);
+window.addEventListener('touchmove', updateTarget, {passive: false});
+window.addEventListener('touchstart', updateTarget, {passive: false});
+
+// --- UI 提示文字 ---
+function showMessage(text, colorClass = 'text-white') {
+    messageDisplay.textContent = text;
+    messageDisplay.className = `inline-block glass-panel px-6 py-2 rounded-full font-bold text-lg transition-opacity duration-300 ${colorClass} opacity-100`;
+    
+    // 清除舊的 timeout
+    if (window.msgTimeout) clearTimeout(window.msgTimeout);
+    window.msgTimeout = setTimeout(() => {
+        messageDisplay.classList.remove('opacity-100');
+        messageDisplay.classList.add('opacity-0');
+    }, 1500);
+}
+
+function spawnParticles(x, y, color, text = null, count = 5) {
+    if (text) {
+        particles.push(new Particle(x, y, color, text));
+    }
+    for (let i = 0; i < count; i++) {
+        particles.push(new Particle(x, y, color, null));
+    }
+}
+
+// --- 核心邏輯 ---
+
+function check211Complete() {
+    if (player.inventory.v === 4 && player.inventory.p === 2 && player.inventory.c === 2) {
+        // 完美 211 餐盤！
+        gameState.score += 500;
+        gameState.level++;
+        gameState.time += 15; // 獎勵時間
+        
+        player.inventory = { v: 0, p: 0, c: 0 }; // 清空準備下一盤
+        
+        showMessage("🌟 完美 211 餐盤！等級提升！", "text-yellow-400");
+        spawnParticles(player.x, player.y, '#fbbf24', 'LEVEL UP!', 20);
+        
+        updateUI();
+        return true;
+    }
+    return false;
+}
+
+function handleEating(food) {
+    const type = food.typeObj;
+    
+    if (type.id === 'j') {
+        // 吃到垃圾食物
+        if (player.invincibleTimer > 0) {
+            spawnParticles(food.x, food.y, '#fff', '無敵彈開！');
+            return false; // 無敵狀態彈開
+        } else {
+            gameState.time -= 5;
+            gameState.score = Math.max(0, gameState.score - 50);
+            showMessage("⚠️ 吃到垃圾食物！扣 5 秒！", "text-red-500");
+            spawnParticles(food.x, food.y, type.color, '💔', 10);
+            updateUI();
+            
+            // 畫面震動效果 (簡單實作)
+            ctx.translate((Math.random()-0.5)*20, (Math.random()-0.5)*20);
+            setTimeout(() => ctx.setTransform(1, 0, 0, 1, 0, 0), 50);
+            return true;
+        }
+    }
+
+    if (type.id === 'b') {
+        // 我的餐盤加成 (乳品/堅果)
+        player.invincibleTimer = 5000; // 5秒無敵
+        gameState.score += 100;
+        showMessage("🥛 獲得我的餐盤健康防護罩！", "text-blue-400");
+        spawnParticles(food.x, food.y, type.color, '無敵！', 15);
+        updateUI();
+        return true;
+    }
+
+    // 處理 211 食物
+    if (player.inventory[type.id] < type.max) {
+        player.inventory[type.id]++;
+        gameState.score += 10;
+        spawnParticles(food.x, food.y, type.color, `+1 ${type.name}`);
+        updateUI();
+        check211Complete();
+        return true;
+    } else {
+        // 該類別已滿
+        showMessage(`🛑 ${type.name}已經夠囉！`, "text-slate-300");
+        // 把食物彈開
+        food.vx *= -1.5;
+        food.vy *= -1.5;
+        return false;
+    }
+}
+
+// --- 遊戲迴圈 ---
+
+function gameLoop(timestamp) {
+    if (!gameState.isRunning) return;
+
+    const dt = timestamp - gameState.lastTime;
+    gameState.lastTime = timestamp;
+
+    // 清除畫布
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // 畫背景網格 (增加太空感)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+    ctx.lineWidth = 1;
+    const gridSize = 100;
+    const offsetX = (Date.now() * 0.02) % gridSize;
+    const offsetY = (Date.now() * 0.02) % gridSize;
+    
+    ctx.beginPath();
+    for(let x = offsetX; x < canvas.width; x += gridSize) { ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); }
+    for(let y = offsetY; y < canvas.height; y += gridSize) { ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); }
+    ctx.stroke();
+
+    // 更新與繪製玩家
+    player.update(dt);
+    player.draw(ctx);
+
+    // 生成食物
+    foodSpawnTimer -= dt;
+    if (foodSpawnTimer <= 0) {
+        const spawnRate = Math.max(200, 1000 - (gameState.level * 50)); // 隨等級加快生成
+        foodSpawnTimer = spawnRate;
+        
+        // 隨機決定生成種類 (機率控制)
+        const rand = Math.random();
+        let selectedType;
+        if (rand < 0.3) selectedType = FOOD_TYPES.VEG;       // 30% 蔬菜 (因為需要4份，機率高點)
+        else if (rand < 0.5) selectedType = FOOD_TYPES.PRO;  // 20% 蛋白
+        else if (rand < 0.7) selectedType = FOOD_TYPES.CARB; // 20% 澱粉
+        else if (rand < 0.8) selectedType = FOOD_TYPES.BONUS;// 10% 道具
+        else selectedType = FOOD_TYPES.JUNK;                 // 20% 垃圾食物
+
+        foods.push(new Food(selectedType));
+    }
+
+    // 更新與繪製食物，並進行碰撞偵測
+    for (let i = foods.length - 1; i >= 0; i--) {
+        let f = foods[i];
+        f.update(dt);
+        f.draw(ctx);
+
+        // 圓形碰撞偵測
+        const dx = player.x - f.x;
+        const dy = player.y - f.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance < player.radius + f.radius) {
+            // 發生碰撞
+            const eaten = handleEating(f);
+            if (eaten) {
+                f.markedForDeletion = true;
+            }
+        }
+
+        if (f.markedForDeletion) {
+            foods.splice(i, 1);
+        }
+    }
+
+    // 更新與繪製粒子
+    for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.update();
+        p.draw(ctx);
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+function updateUI() {
+    scoreDisplay.textContent = gameState.score;
+    levelDisplay.textContent = gameState.level;
+    timeDisplay.textContent = Math.ceil(gameState.time);
+}
+
+// 計時器邏輯
+function startTimer() {
+    if (gameState.timerInterval) clearInterval(gameState.timerInterval);
+    gameState.timerInterval = setInterval(() => {
+        if (!gameState.isRunning) return;
+        
+        gameState.time -= 1;
+        updateUI();
+
+        if (gameState.time <= 0) {
+            gameOver();
+        }
+    }, 1000);
+}
+
+function startGame() {
+    overlay.classList.add('hidden');
+    
+    // 初始化狀態
+    player = new Player();
+    foods = [];
+    particles = [];
+    gameState.score = 0;
+    gameState.time = 60;
+    gameState.level = 1;
+    gameState.isRunning = true;
+    gameState.lastTime = performance.now();
+    
+    updateUI();
+    startTimer();
+    showMessage("遊戲開始！快吃蔬菜！");
+    
+    requestAnimationFrame(gameLoop);
+}
+
+function gameOver() {
+    gameState.isRunning = false;
+    clearInterval(gameState.timerInterval);
+    
+    overlay.classList.remove('hidden');
+    overlay.innerHTML = `
+        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl">
+            <h1 class="text-4xl font-black mb-4 text-rose-500">時間到！</h1>
+            <p class="text-xl mb-2">你的最終分數</p>
+            <div class="text-6xl font-black text-yellow-400 mb-6">${gameState.score}</div>
+            <p class="mb-6 text-slate-300">成功達成 <span class="text-emerald-400 font-bold">${gameState.level - 1}</span> 次完美 211 餐盤！</p>
+            <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xl rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
+                再玩一次
+            </button>
+        </div>
+    `;
+}
+
+startBtn.addEventListener('click', startGame);
+
+</script>
+</body>
+</html>
