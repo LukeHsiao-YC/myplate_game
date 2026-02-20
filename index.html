@@ -31,9 +31,76 @@
                 0 0 20px #0ea5e9,
                 0 0 40px #0ea5e9;
         }
+        /* 新增介紹圖文的動畫類別 */
+        .slide-hidden {
+            display: none;
+            opacity: 0;
+        }
+        .slide-active {
+            display: flex;
+            opacity: 1;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
+
+    <!-- 介紹畫面覆蓋層 (新增課前導覽) -->
+    <div id="intro-overlay" class="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-30 backdrop-blur-md transition-opacity duration-500">
+        <div class="max-w-2xl w-full p-6 md:p-10 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl mx-4 relative overflow-hidden">
+            
+            <!-- Slide 1: 211餐盤 -->
+            <div id="slide-1" class="slide-active flex-col items-center">
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-emerald-400">什麼是 211 餐盤？</h2>
+                <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
+                    <div class="w-48 h-48 rounded-full border-8 border-slate-700 relative overflow-hidden flex flex-wrap bg-slate-800 shadow-inner shrink-0">
+                        <div class="w-full h-1/2 bg-emerald-500/30 border-b-4 border-slate-700 flex items-center justify-center text-2xl font-black">🥗 50%</div>
+                        <div class="w-1/2 h-1/2 bg-rose-500/30 border-r-4 border-slate-700 flex items-center justify-center text-xl font-black">🥩 25%</div>
+                        <div class="w-1/2 h-1/2 bg-amber-500/30 flex items-center justify-center text-xl font-black">🍚 25%</div>
+                    </div>
+                    <div class="text-left space-y-4 text-lg">
+                        <p><span class="text-emerald-400 font-bold text-xl drop-shadow-sm">🟢 2份 蔬菜：</span><br><span class="text-slate-300">豐富膳食纖維，幫助消化</span></p>
+                        <p><span class="text-rose-400 font-bold text-xl drop-shadow-sm">🔴 1份 蛋白質：</span><br><span class="text-slate-300">豆魚蛋肉類，維持肌肉量</span></p>
+                        <p><span class="text-amber-400 font-bold text-xl drop-shadow-sm">🟡 1份 全穀雜糧：</span><br><span class="text-slate-300">糙米或地瓜，提供大腦能量</span></p>
+                    </div>
+                </div>
+                <button onclick="nextSlide(2)" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xl transition shadow-lg w-full md:w-auto transform hover:scale-105">看下一頁 ➡️</button>
+            </div>
+
+            <!-- Slide 2: 我的餐盤 -->
+            <div id="slide-2" class="slide-hidden flex-col items-center">
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-blue-400 leading-tight">加上「我的餐盤」<br class="md:hidden">更健康！</h2>
+                <div class="bg-slate-800 p-6 rounded-2xl mb-8 text-left space-y-6 text-lg border border-slate-700 w-full">
+                    <div class="flex items-center gap-6">
+                        <div class="text-6xl drop-shadow-xl shrink-0">🥛</div>
+                        <div>
+                            <p class="font-black text-blue-300 text-2xl mb-1">每天早晚一杯奶</p>
+                            <p class="text-slate-400">補充鈣質，讓骨骼更強壯！</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-6xl drop-shadow-xl shrink-0">🥜</div>
+                        <div>
+                            <p class="font-black text-amber-300 text-2xl mb-1">每餐堅果種子一茶匙</p>
+                            <p class="text-slate-400">攝取好油脂，保護心血管！</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-emerald-900/50 p-4 rounded-xl border border-emerald-500/30 mb-8 w-full">
+                    <p class="text-emerald-400 font-bold text-xl">💡 遊戲中吃到乳品或堅果，會獲得無敵防護罩喔！</p>
+                </div>
+                <div class="flex flex-col md:flex-row gap-4 justify-center w-full">
+                    <button onclick="nextSlide(1)" class="px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-lg transition shadow-lg shrink-0">⬅️ 上一頁</button>
+                    <button onclick="closeIntro()" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl text-xl transition shadow-lg flex-1 transform hover:scale-105">看遊戲規則 🚀</button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 
     <!-- UI 層 -->
     <div id="ui-layer" class="absolute inset-0 pointer-events-none flex flex-col justify-between p-4 z-10">
@@ -55,33 +122,52 @@
             </div>
         </div>
 
+        <!-- 左下角：目前餐盤 HUD (顯示吃下的食物) -->
+        <div id="plate-hud" class="absolute bottom-4 left-4 glass-panel p-3 rounded-xl shadow-lg pointer-events-none transition-opacity duration-300 scale-90 md:scale-100 origin-bottom-left">
+            <div class="text-sm text-slate-400 mb-2 font-bold tracking-wider">🍽️ 目前餐盤內容</div>
+            <div class="flex gap-2 md:gap-3">
+                <div class="bg-slate-800/80 p-2 rounded-lg min-w-[70px] border border-emerald-500/30">
+                    <div class="text-emerald-400 text-xs font-bold mb-1">蔬菜 (4)</div>
+                    <div id="hud-v" class="text-2xl min-h-[32px] tracking-widest drop-shadow-md"></div>
+                </div>
+                <div class="bg-slate-800/80 p-2 rounded-lg min-w-[70px] border border-rose-500/30">
+                    <div class="text-rose-400 text-xs font-bold mb-1">蛋白質 (2)</div>
+                    <div id="hud-p" class="text-2xl min-h-[32px] tracking-widest drop-shadow-md"></div>
+                </div>
+                <div class="bg-slate-800/80 p-2 rounded-lg min-w-[70px] border border-amber-500/30">
+                    <div class="text-amber-400 text-xs font-bold mb-1">全穀 (2)</div>
+                    <div id="hud-c" class="text-2xl min-h-[32px] tracking-widest drop-shadow-md"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- 底部提示列 -->
-        <div class="text-center mb-4">
-            <div id="message-display" class="inline-block glass-panel px-6 py-2 rounded-full text-white font-bold text-lg opacity-0 transition-opacity duration-300">
+        <div class="text-center mb-4 md:mb-8 absolute bottom-0 left-0 right-0 pointer-events-none">
+            <div id="message-display" class="inline-block glass-panel px-6 py-2 rounded-full text-white font-bold text-lg opacity-0 transition-opacity duration-300 shadow-xl">
                 歡迎來到星際！
             </div>
         </div>
     </div>
 
     <!-- 開始/結束畫面覆蓋層 -->
-    <div id="overlay" class="absolute inset-0 bg-slate-900/90 flex items-center justify-center z-20 backdrop-blur-sm">
-        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl">
+    <div id="overlay" class="absolute inset-0 bg-slate-900/90 flex items-center justify-center z-20 backdrop-blur-sm pointer-events-auto">
+        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl mx-4">
             <h1 class="text-4xl font-black mb-2 neon-text tracking-wider">星際 211 吞噬者</h1>
             <p class="text-emerald-400 font-bold mb-6">我的餐盤能量大挑戰</p>
             
             <div class="text-left space-y-4 mb-8 text-sm md:text-base">
                 <p>🛸 <b>任務目標：</b> 幫助波波收集宇宙能量，組成完美的 211 餐盤！</p>
-                <div class="bg-slate-800 p-3 rounded-lg">
+                <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
                     <p class="font-bold text-emerald-400 mb-1">🟢 蔬菜 (佔 50%) - 需要 4 份</p>
                     <p class="text-xs text-slate-300">🥦 🥕 🍅 🥬 🍆 🍄</p>
                 </div>
-                <div class="bg-slate-800 p-3 rounded-lg">
+                <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
                     <p class="font-bold text-rose-400 mb-1">🔴 豆魚蛋肉 (佔 25%) - 需要 2 份</p>
                     <p class="text-xs text-slate-300">🍗 🐟 🥚 🥩 🦐 🦑</p>
                 </div>
-                <div class="bg-slate-800 p-3 rounded-lg">
+                <div class="bg-slate-800 p-3 rounded-lg border border-slate-700">
                     <p class="font-bold text-amber-400 mb-1">🟡 全穀雜糧 (佔 25%) - 需要 2 份</p>
-                    <p class="text-xs text-slate-300">🍚 🍠 🌽 🍞 🥔 (注意：玉米馬鈴薯是澱粉喔！)</p>
+                    <p class="text-xs text-slate-300">🍚 🍠 🌽 🍞 🥔 (玉米和馬鈴薯是澱粉喔！)</p>
                 </div>
                 <p>✨ <b>隱藏加成：</b> 吃到乳品🥛或堅果🥜可獲得「我的餐盤」無敵衝刺！</p>
                 <p>⚠️ <b>危險警告：</b> 碰到垃圾食物🍔🥤會扣時間！</p>
@@ -109,6 +195,10 @@ const scoreDisplay = document.getElementById('score-display');
 const timeDisplay = document.getElementById('time-display');
 const levelDisplay = document.getElementById('level-display');
 const messageDisplay = document.getElementById('message-display');
+
+const hudV = document.getElementById('hud-v');
+const hudP = document.getElementById('hud-p');
+const hudC = document.getElementById('hud-c');
 
 // 調整畫布大小
 function resizeCanvas() {
@@ -148,6 +238,7 @@ class Player {
         this.targetY = this.y;
         this.speed = 0.15; // 緩動跟隨滑鼠的速度
         this.inventory = { v: 0, p: 0, c: 0 };
+        this.collectedEmojis = { v: [], p: [], c: [] }; // 記錄具體吃了什麼
         this.invincibleTimer = 0;
         this.rotation = 0;
     }
@@ -261,7 +352,7 @@ class Food {
     constructor(typeObj) {
         this.typeObj = typeObj;
         this.emoji = typeObj.emojis[Math.floor(Math.random() * typeObj.emojis.length)];
-        this.radius = 20;
+        this.radius = 28; // 稍微加大食物尺寸讓玩家看更清楚
         
         // 隨機從畫面邊緣生成
         if (Math.random() > 0.5) {
@@ -277,12 +368,13 @@ class Food {
         const targetY = canvas.height/2 + (Math.random() - 0.5) * 300;
         const angle = Math.atan2(targetY - this.y, targetX - this.x);
         
-        const speed = 1 + Math.random() * 2 + (gameState.level * 0.2); // 隨等級變快
+        // 【修改】大幅提升食物的飛行速度，解決節奏太慢的問題
+        const speed = 2.5 + Math.random() * 3.5 + (gameState.level * 0.3);
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
         
         this.rotation = Math.random() * Math.PI * 2;
-        this.rotSpeed = (Math.random() - 0.5) * 0.1;
+        this.rotSpeed = (Math.random() - 0.5) * 0.05;
         this.markedForDeletion = false;
         
         // 出生保護時間，避免一出生就被刪除
@@ -311,10 +403,11 @@ class Food {
         ctx.rotate(this.rotation);
         
         // 外發光
-        ctx.shadowBlur = 10;
+        ctx.shadowBlur = 15;
         ctx.shadowColor = this.typeObj.color;
         
-        ctx.font = '30px Arial';
+        // 強制使用支援 Emoji 的字體
+        ctx.font = '40px "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", Arial, sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(this.emoji, 0, 0);
@@ -342,9 +435,13 @@ class Particle {
         ctx.save();
         ctx.globalAlpha = Math.max(0, this.life);
         if (this.text) {
-            ctx.font = 'bold 20px "Noto Sans TC"';
+            ctx.font = 'bold 24px "Apple Color Emoji", "Segoe UI Emoji", "Noto Sans TC", sans-serif';
             ctx.fillStyle = this.color;
             ctx.textAlign = 'center';
+            // 添加文字外框讓顯示更清晰
+            ctx.strokeStyle = '#0f172a';
+            ctx.lineWidth = 3;
+            ctx.strokeText(this.text, this.x, this.y);
             ctx.fillText(this.text, this.x, this.y);
         } else {
             ctx.beginPath();
@@ -362,26 +459,49 @@ let foods = [];
 let particles = [];
 let foodSpawnTimer = 0;
 
-// --- 輸入處理 ---
-function updateTarget(e) {
-    if (!gameState.isRunning) return;
-    e.preventDefault();
-    if (e.touches && e.touches.length > 0) {
-        player.targetX = e.touches[0].clientX;
-        player.targetY = e.touches[0].clientY;
-    } else {
-        player.targetX = e.clientX;
-        player.targetY = e.clientY;
-    }
+// 【新增】取得隨機食物種類的函數，讓主邏輯更簡潔
+function getRandomFoodType() {
+    const rand = Math.random();
+    if (rand < 0.35) return FOOD_TYPES.VEG;       // 35% 蔬菜
+    else if (rand < 0.55) return FOOD_TYPES.PRO;  // 20% 蛋白
+    else if (rand < 0.75) return FOOD_TYPES.CARB; // 20% 澱粉
+    else if (rand < 0.85) return FOOD_TYPES.BONUS;// 10% 道具
+    else return FOOD_TYPES.JUNK;                 // 15% 垃圾食物
 }
-window.addEventListener('mousemove', updateTarget);
-window.addEventListener('touchmove', updateTarget, {passive: false});
-window.addEventListener('touchstart', updateTarget, {passive: false});
 
-// --- UI 提示文字 ---
+// --- 介紹畫面邏輯 (新增) ---
+function nextSlide(n) {
+    document.getElementById('slide-1').classList.remove('slide-active');
+    document.getElementById('slide-1').classList.add('slide-hidden');
+    document.getElementById('slide-2').classList.remove('slide-active');
+    document.getElementById('slide-2').classList.add('slide-hidden');
+    
+    document.getElementById('slide-' + n).classList.remove('slide-hidden');
+    document.getElementById('slide-' + n).classList.add('slide-active');
+}
+
+function closeIntro() {
+    const introOverlay = document.getElementById('intro-overlay');
+    introOverlay.style.opacity = '0';
+    setTimeout(() => introOverlay.style.display = 'none', 500); // 讓消失更滑順
+}
+
+// --- UI 更新邏輯 ---
+function updateHUD() {
+    hudV.textContent = player.collectedEmojis.v.join('');
+    hudP.textContent = player.collectedEmojis.p.join('');
+    hudC.textContent = player.collectedEmojis.c.join('');
+}
+
+function updateUI() {
+    scoreDisplay.textContent = gameState.score;
+    levelDisplay.textContent = gameState.level;
+    timeDisplay.textContent = Math.ceil(gameState.time);
+}
+
 function showMessage(text, colorClass = 'text-white') {
     messageDisplay.textContent = text;
-    messageDisplay.className = `inline-block glass-panel px-6 py-2 rounded-full font-bold text-lg transition-opacity duration-300 ${colorClass} opacity-100`;
+    messageDisplay.className = `inline-block glass-panel px-6 py-2 rounded-full font-bold text-lg transition-opacity duration-300 ${colorClass} opacity-100 shadow-xl`;
     
     // 清除舊的 timeout
     if (window.msgTimeout) clearTimeout(window.msgTimeout);
@@ -400,6 +520,22 @@ function spawnParticles(x, y, color, text = null, count = 5) {
     }
 }
 
+// --- 輸入處理 ---
+function updateTarget(e) {
+    if (!gameState.isRunning) return;
+    e.preventDefault();
+    if (e.touches && e.touches.length > 0) {
+        player.targetX = e.touches[0].clientX;
+        player.targetY = e.touches[0].clientY;
+    } else {
+        player.targetX = e.clientX;
+        player.targetY = e.clientY;
+    }
+}
+window.addEventListener('mousemove', updateTarget);
+window.addEventListener('touchmove', updateTarget, {passive: false});
+window.addEventListener('touchstart', updateTarget, {passive: false});
+
 // --- 核心邏輯 ---
 
 function check211Complete() {
@@ -410,11 +546,13 @@ function check211Complete() {
         gameState.time += 15; // 獎勵時間
         
         player.inventory = { v: 0, p: 0, c: 0 }; // 清空準備下一盤
+        player.collectedEmojis = { v: [], p: [], c: [] }; // 清空進度顯示
         
         showMessage("🌟 完美 211 餐盤！等級提升！", "text-yellow-400");
-        spawnParticles(player.x, player.y, '#fbbf24', 'LEVEL UP!', 20);
+        spawnParticles(player.x, player.y, '#fbbf24', '🌟 LEVEL UP!', 20);
         
         updateUI();
+        updateHUD();
         return true;
     }
     return false;
@@ -426,13 +564,14 @@ function handleEating(food) {
     if (type.id === 'j') {
         // 吃到垃圾食物
         if (player.invincibleTimer > 0) {
-            spawnParticles(food.x, food.y, '#fff', '無敵彈開！');
+            spawnParticles(food.x, food.y, '#fff', '🛡️ 無敵彈開！');
             return false; // 無敵狀態彈開
         } else {
             gameState.time -= 5;
             gameState.score = Math.max(0, gameState.score - 50);
-            showMessage("⚠️ 吃到垃圾食物！扣 5 秒！", "text-red-500");
-            spawnParticles(food.x, food.y, type.color, '💔', 10);
+            // 提示加上食物 Emoji
+            showMessage(`⚠️ 吃到 ${food.emoji}！扣 5 秒！`, "text-red-500");
+            spawnParticles(food.x, food.y, type.color, `${food.emoji} 💔`, 10);
             updateUI();
             
             // 畫面震動效果 (簡單實作)
@@ -446,8 +585,8 @@ function handleEating(food) {
         // 我的餐盤加成 (乳品/堅果)
         player.invincibleTimer = 5000; // 5秒無敵
         gameState.score += 100;
-        showMessage("🥛 獲得我的餐盤健康防護罩！", "text-blue-400");
-        spawnParticles(food.x, food.y, type.color, '無敵！', 15);
+        showMessage(`🛡️ 吃到 ${food.emoji} 獲得健康防護罩！`, "text-blue-400");
+        spawnParticles(food.x, food.y, type.color, `${food.emoji} 無敵！`, 15);
         updateUI();
         return true;
     }
@@ -455,9 +594,14 @@ function handleEating(food) {
     // 處理 211 食物
     if (player.inventory[type.id] < type.max) {
         player.inventory[type.id]++;
+        player.collectedEmojis[type.id].push(food.emoji); // 記錄吃下的表情符號
+        
         gameState.score += 10;
-        spawnParticles(food.x, food.y, type.color, `+1 ${type.name}`);
+        // 動態文字加上食物 Emoji
+        spawnParticles(food.x, food.y, type.color, `${food.emoji} +1 ${type.name}`);
+        
         updateUI();
+        updateHUD();
         check211Complete();
         return true;
     } else {
@@ -500,19 +644,11 @@ function gameLoop(timestamp) {
     // 生成食物
     foodSpawnTimer -= dt;
     if (foodSpawnTimer <= 0) {
-        const spawnRate = Math.max(200, 1000 - (gameState.level * 50)); // 隨等級加快生成
+        // 【修改】大幅加快生成頻率，預設約 400ms 生成一個，解決畫面太空的問題
+        const spawnRate = Math.max(150, 400 - (gameState.level * 25)); 
         foodSpawnTimer = spawnRate;
         
-        // 隨機決定生成種類 (機率控制)
-        const rand = Math.random();
-        let selectedType;
-        if (rand < 0.3) selectedType = FOOD_TYPES.VEG;       // 30% 蔬菜 (因為需要4份，機率高點)
-        else if (rand < 0.5) selectedType = FOOD_TYPES.PRO;  // 20% 蛋白
-        else if (rand < 0.7) selectedType = FOOD_TYPES.CARB; // 20% 澱粉
-        else if (rand < 0.8) selectedType = FOOD_TYPES.BONUS;// 10% 道具
-        else selectedType = FOOD_TYPES.JUNK;                 // 20% 垃圾食物
-
-        foods.push(new Food(selectedType));
+        foods.push(new Food(getRandomFoodType()));
     }
 
     // 更新與繪製食物，並進行碰撞偵測
@@ -550,12 +686,6 @@ function gameLoop(timestamp) {
     requestAnimationFrame(gameLoop);
 }
 
-function updateUI() {
-    scoreDisplay.textContent = gameState.score;
-    levelDisplay.textContent = gameState.level;
-    timeDisplay.textContent = Math.ceil(gameState.time);
-}
-
 // 計時器邏輯
 function startTimer() {
     if (gameState.timerInterval) clearInterval(gameState.timerInterval);
@@ -585,8 +715,23 @@ function startGame() {
     gameState.lastTime = performance.now();
     
     updateUI();
+    updateHUD(); // 初始化清空 HUD
     startTimer();
     showMessage("遊戲開始！快吃蔬菜！");
+    
+    // 【新增】遊戲一開始直接在畫面上撒下一批食物，避免開局空窗期
+    for(let i = 0; i < 15; i++) {
+        let f = new Food(getRandomFoodType());
+        // 強制出生在畫面內部
+        f.x = Math.random() * (canvas.width - 100) + 50;
+        f.y = Math.random() * (canvas.height - 100) + 50;
+        // 給予隨機的初始飛行方向
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 2;
+        f.vx = Math.cos(angle) * speed;
+        f.vy = Math.sin(angle) * speed;
+        foods.push(f);
+    }
     
     requestAnimationFrame(gameLoop);
 }
@@ -597,7 +742,7 @@ function gameOver() {
     
     overlay.classList.remove('hidden');
     overlay.innerHTML = `
-        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl">
+        <div class="max-w-md w-full p-8 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl mx-4">
             <h1 class="text-4xl font-black mb-4 text-rose-500">時間到！</h1>
             <p class="text-xl mb-2">你的最終分數</p>
             <div class="text-6xl font-black text-yellow-400 mb-6">${gameState.score}</div>
