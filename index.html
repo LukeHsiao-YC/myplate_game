@@ -49,12 +49,27 @@
 </head>
 <body>
 
-    <!-- 介紹畫面覆蓋層 (新增課前導覽) -->
+    <!-- 介紹畫面覆蓋層 (故事導覽) -->
     <div id="intro-overlay" class="absolute inset-0 bg-slate-900/95 flex items-center justify-center z-30 backdrop-blur-md transition-opacity duration-500">
         <div class="max-w-2xl w-full p-6 md:p-10 glass-panel rounded-3xl text-center text-white border-2 border-slate-700 shadow-2xl mx-4 relative overflow-hidden">
             
-            <!-- Slide 1: 211餐盤 -->
+            <!-- Slide 1: 波波的故事 -->
             <div id="slide-1" class="slide-active flex-col items-center">
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-amber-400">宇宙探險家「波波」的危機！</h2>
+                <div class="bg-slate-800 p-6 rounded-2xl mb-8 text-left space-y-4 text-lg border border-slate-700 w-full relative">
+                    <div class="absolute -top-10 -right-4 text-8xl drop-shadow-2xl animate-bounce">👾</div>
+                    <p>波波是一隻熱愛探索宇宙的外星人，但最近他在航行時，常常覺得頭暈目眩、全身沒力...</p>
+                    <p>船長告訴他：<span class="text-rose-400 font-bold">「波波！你亂吃太多宇宙垃圾食物，能量快耗盡了！」</span></p>
+                    <div class="bg-slate-900 p-4 rounded-xl border border-slate-600 mt-4">
+                        <p class="text-emerald-400 font-bold text-xl mb-2">💡 拯救波波的方法：</p>
+                        <p class="text-slate-300">你必須幫他尋找傳說中的<span class="text-yellow-400 font-bold">「211 能量餐盤」</span>與<span class="text-blue-400 font-bold">「我的餐盤」</span>秘方，才能恢復滿滿的活力，繼續宇宙探險！</p>
+                    </div>
+                </div>
+                <button onclick="nextSlide(2)" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xl transition shadow-lg w-full md:w-auto transform hover:scale-105">看能量秘方 ➡️</button>
+            </div>
+
+            <!-- Slide 2: 211餐盤 -->
+            <div id="slide-2" class="slide-hidden flex-col items-center">
                 <h2 class="text-3xl md:text-5xl font-black mb-6 text-emerald-400">什麼是 211 餐盤？</h2>
                 <div class="flex flex-col md:flex-row items-center justify-center gap-6 mb-8">
                     <div class="w-48 h-48 rounded-full border-8 border-slate-700 relative overflow-hidden flex flex-wrap bg-slate-800 shadow-inner shrink-0">
@@ -63,30 +78,33 @@
                         <div class="w-1/2 h-1/2 bg-amber-500/30 flex items-center justify-center text-xl font-black">🍚 25%</div>
                     </div>
                     <div class="text-left space-y-4 text-lg">
-                        <p><span class="text-emerald-400 font-bold text-xl drop-shadow-sm">🟢 2份 蔬菜：</span><br><span class="text-slate-300">豐富膳食纖維，幫助消化</span></p>
-                        <p><span class="text-rose-400 font-bold text-xl drop-shadow-sm">🔴 1份 蛋白質：</span><br><span class="text-slate-300">豆魚蛋肉類，維持肌肉量</span></p>
-                        <p><span class="text-amber-400 font-bold text-xl drop-shadow-sm">🟡 1份 全穀雜糧：</span><br><span class="text-slate-300">糙米或地瓜，提供大腦能量</span></p>
+                        <p><span class="text-emerald-400 font-bold text-xl drop-shadow-sm">🟢 2份 蔬菜：</span><br><span class="text-slate-300">豐富膳食纖維，幫助波波消化</span></p>
+                        <p><span class="text-rose-400 font-bold text-xl drop-shadow-sm">🔴 1份 蛋白質：</span><br><span class="text-slate-300">豆魚蛋肉類，維持波波的肌肉量</span></p>
+                        <p><span class="text-amber-400 font-bold text-xl drop-shadow-sm">🟡 1份 全穀雜糧：</span><br><span class="text-slate-300">糙米或地瓜，提供飛船大腦能量</span></p>
                     </div>
                 </div>
-                <button onclick="nextSlide(2)" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xl transition shadow-lg w-full md:w-auto transform hover:scale-105">看下一頁 ➡️</button>
+                <div class="flex flex-col md:flex-row gap-4 justify-center w-full">
+                    <button onclick="nextSlide(1)" class="px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-lg transition shadow-lg shrink-0">⬅️ 上一頁</button>
+                    <button onclick="nextSlide(3)" class="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white font-black rounded-xl text-xl transition shadow-lg flex-1 transform hover:scale-105">還有隱藏能量？ ➡️</button>
+                </div>
             </div>
 
-            <!-- Slide 2: 我的餐盤 -->
-            <div id="slide-2" class="slide-hidden flex-col items-center">
-                <h2 class="text-3xl md:text-5xl font-black mb-6 text-blue-400 leading-tight">加上「我的餐盤」<br class="md:hidden">更健康！</h2>
+            <!-- Slide 3: 我的餐盤 -->
+            <div id="slide-3" class="slide-hidden flex-col items-center">
+                <h2 class="text-3xl md:text-5xl font-black mb-6 text-blue-400 leading-tight">加上「我的餐盤」<br class="md:hidden">防護罩！</h2>
                 <div class="bg-slate-800 p-6 rounded-2xl mb-8 text-left space-y-6 text-lg border border-slate-700 w-full">
                     <div class="flex items-center gap-6">
                         <div class="text-6xl drop-shadow-xl shrink-0">🥛</div>
                         <div>
                             <p class="font-black text-blue-300 text-2xl mb-1">每天早晚一杯奶</p>
-                            <p class="text-slate-400">補充鈣質，讓骨骼更強壯！</p>
+                            <p class="text-slate-400">補充鈣質，讓波波的骨骼更強壯！</p>
                         </div>
                     </div>
                     <div class="flex items-center gap-6">
                         <div class="text-6xl drop-shadow-xl shrink-0">🥜</div>
                         <div>
                             <p class="font-black text-amber-300 text-2xl mb-1">每餐堅果種子一茶匙</p>
-                            <p class="text-slate-400">攝取好油脂，保護心血管！</p>
+                            <p class="text-slate-400">攝取好油脂，保護心血管與大腦！</p>
                         </div>
                     </div>
                 </div>
@@ -94,8 +112,8 @@
                     <p class="text-emerald-400 font-bold text-xl">💡 遊戲中吃到乳品或堅果，會獲得無敵防護罩喔！</p>
                 </div>
                 <div class="flex flex-col md:flex-row gap-4 justify-center w-full">
-                    <button onclick="nextSlide(1)" class="px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-lg transition shadow-lg shrink-0">⬅️ 上一頁</button>
-                    <button onclick="closeIntro()" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl text-xl transition shadow-lg flex-1 transform hover:scale-105">看遊戲規則 🚀</button>
+                    <button onclick="nextSlide(2)" class="px-6 py-4 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-lg transition shadow-lg shrink-0">⬅️ 上一頁</button>
+                    <button onclick="closeIntro()" class="px-8 py-4 bg-emerald-500 hover:bg-emerald-400 text-white font-black rounded-xl text-xl transition shadow-lg flex-1 transform hover:scale-105">幫助波波發射！ 🚀</button>
                 </div>
             </div>
             
@@ -368,7 +386,7 @@ class Food {
         const targetY = canvas.height/2 + (Math.random() - 0.5) * 300;
         const angle = Math.atan2(targetY - this.y, targetX - this.x);
         
-        // 【修改】大幅提升食物的飛行速度，解決節奏太慢的問題
+        // 大幅提升食物的飛行速度
         const speed = 2.5 + Math.random() * 3.5 + (gameState.level * 0.3);
         this.vx = Math.cos(angle) * speed;
         this.vy = Math.sin(angle) * speed;
@@ -387,14 +405,12 @@ class Food {
         this.rotation += this.rotSpeed;
         this.lifeTime += dt;
 
-        // 如果飛出螢幕太遠則刪除
-        if (this.lifeTime > 2000 && (this.x < -100 || this.x > canvas.width + 100 || this.y < -100 || this.y > canvas.height + 100)) {
+        // 如果飛出螢幕太遠則刪除 (放寬一點判定距離到 150，確保完全離開畫面才消失)
+        if (this.lifeTime > 2000 && (this.x < -150 || this.x > canvas.width + 150 || this.y < -150 || this.y > canvas.height + 150)) {
             this.markedForDeletion = true;
         }
         
-        // 邊緣反彈 (微弱反彈，讓他多留在場上一會兒)
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -0.9;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -0.9;
+        // 【已刪除】：原本這裡有邊緣反彈的程式碼，現在移除以解決食物卡在邊緣的問題
     }
 
     draw(ctx) {
@@ -459,7 +475,7 @@ let foods = [];
 let particles = [];
 let foodSpawnTimer = 0;
 
-// 【新增】取得隨機食物種類的函數，讓主邏輯更簡潔
+// 取得隨機食物種類的函數
 function getRandomFoodType() {
     const rand = Math.random();
     if (rand < 0.35) return FOOD_TYPES.VEG;       // 35% 蔬菜
@@ -469,15 +485,22 @@ function getRandomFoodType() {
     else return FOOD_TYPES.JUNK;                 // 15% 垃圾食物
 }
 
-// --- 介紹畫面邏輯 (新增) ---
+// --- 介紹畫面邏輯 ---
 function nextSlide(n) {
-    document.getElementById('slide-1').classList.remove('slide-active');
-    document.getElementById('slide-1').classList.add('slide-hidden');
-    document.getElementById('slide-2').classList.remove('slide-active');
-    document.getElementById('slide-2').classList.add('slide-hidden');
-    
-    document.getElementById('slide-' + n).classList.remove('slide-hidden');
-    document.getElementById('slide-' + n).classList.add('slide-active');
+    // 隱藏所有 slide
+    for (let i = 1; i <= 3; i++) {
+        let slide = document.getElementById('slide-' + i);
+        if (slide) {
+            slide.classList.remove('slide-active');
+            slide.classList.add('slide-hidden');
+        }
+    }
+    // 顯示目標 slide
+    let targetSlide = document.getElementById('slide-' + n);
+    if (targetSlide) {
+        targetSlide.classList.remove('slide-hidden');
+        targetSlide.classList.add('slide-active');
+    }
 }
 
 function closeIntro() {
@@ -644,8 +667,8 @@ function gameLoop(timestamp) {
     // 生成食物
     foodSpawnTimer -= dt;
     if (foodSpawnTimer <= 0) {
-        // 【修改】大幅加快生成頻率，預設約 400ms 生成一個，解決畫面太空的問題
-        const spawnRate = Math.max(150, 400 - (gameState.level * 25)); 
+        // 將生成頻率基礎設定為 600ms (0.6秒)
+        const spawnRate = Math.max(200, 600 - (gameState.level * 30)); 
         foodSpawnTimer = spawnRate;
         
         foods.push(new Food(getRandomFoodType()));
@@ -717,9 +740,9 @@ function startGame() {
     updateUI();
     updateHUD(); // 初始化清空 HUD
     startTimer();
-    showMessage("遊戲開始！快吃蔬菜！");
+    showMessage("幫助波波！快吃蔬菜！");
     
-    // 【新增】遊戲一開始直接在畫面上撒下一批食物，避免開局空窗期
+    // 遊戲一開始直接在畫面上撒下一批食物，避免開局空窗期
     for(let i = 0; i < 15; i++) {
         let f = new Food(getRandomFoodType());
         // 強制出生在畫面內部
@@ -746,7 +769,7 @@ function gameOver() {
             <h1 class="text-4xl font-black mb-4 text-rose-500">時間到！</h1>
             <p class="text-xl mb-2">你的最終分數</p>
             <div class="text-6xl font-black text-yellow-400 mb-6">${gameState.score}</div>
-            <p class="mb-6 text-slate-300">成功達成 <span class="text-emerald-400 font-bold">${gameState.level - 1}</span> 次完美 211 餐盤！</p>
+            <p class="mb-6 text-slate-300">成功達成 <span class="text-emerald-400 font-bold">${gameState.level - 1}</span> 次完美 211 餐盤！波波感謝你！</p>
             <button onclick="location.reload()" class="w-full py-4 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-black text-xl rounded-xl shadow-lg transform transition hover:scale-105 active:scale-95">
                 再玩一次
             </button>
